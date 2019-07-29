@@ -1,8 +1,10 @@
-﻿using IdentityServer4.Models;
+﻿using IdentityServer4;
+using IdentityServer4.Models;
 using IdentityServer4.Test;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace QuickStartIdentityServer.Data
@@ -13,7 +15,9 @@ namespace QuickStartIdentityServer.Data
         {
             return new IdentityResource[]
             {
-                new IdentityResources.OpenId()
+                // standard OIDC scopes
+                new IdentityResources.OpenId(), // subject id
+                new IdentityResources.Profile() // username 
             };
         }
         public static IEnumerable<ApiResource> GetApis()
@@ -52,7 +56,25 @@ namespace QuickStartIdentityServer.Data
                     {
                         "api1"
                     }
-                }
+                },
+                new Client
+                {
+                    ClientId = "oidc_client",
+                    ClientName ="OIDC Client",
+                    AllowedGrantTypes =GrantTypes.Implicit,
+                    RequireConsent = false,
+
+                    //standard redirect uris
+                    // redirect URI upon successful login
+                    RedirectUris = { "http://localhost:5002/signin-oidc" },
+                    // The redirect uri after logout
+                    PostLogoutRedirectUris = {"http://localhost:5002/signout-callback-oidc"},
+                    AllowedScopes = new List<string>
+                    {
+                        IdentityServerConstants.StandardScopes.OpenId,
+                        IdentityServerConstants.StandardScopes.Profile,
+                    }
+                },
             };
         }
 
@@ -64,13 +86,25 @@ namespace QuickStartIdentityServer.Data
                 {
                     SubjectId = "1",
                     Username = "alice",
-                    Password = "password"
+                    Password = "password",
+
+                    Claims = new []
+                    {
+                        new Claim("name", "Alice"),
+                        new Claim("website", "https://alice.com")
+                    }
                 },
                 new TestUser
                 {
                     SubjectId = "2",
                     Username = "bob",
-                    Password = "password"
+                    Password = "password",
+
+                    Claims = new []
+                    {
+                        new Claim("name", "Bob"),
+                        new Claim("website", "https://bob.com")
+                    }
                 }
             };
         }
